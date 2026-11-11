@@ -1,0 +1,16 @@
+name: False report
+description: A repository was reported healthy that is not, or the reverse
+labels: ["bug"]
+body:
+  - type: input
+    id: repo
+    attributes:
+      label: Repository
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What estate said, and what is actually true
+    validations:
+      required: true

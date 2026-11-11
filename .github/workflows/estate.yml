@@ -1,0 +1,37 @@
+name: estate
+
+# Weekly, not on every push. These checks move on the scale of days — a CI run
+# that has been red for three days, a repository that has gone quiet for a
+# season. Running them per commit would add noise and tell you nothing new.
+on:
+  schedule:
+    - cron: "0 2 * * 1"      # Mondays, 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sweep the account
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/estate.py --owner ${{ github.repository_owner }} --fail-on red
+
+      - name: Write the report to the summary
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo '## Estate sweep' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          python scripts/estate.py --owner ${{ github.repository_owner }} >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
